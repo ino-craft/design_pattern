@@ -19,6 +19,11 @@ https://docs.github.com/en/education/manage-coursework-with-github-classroom/tea
 - `.github/workflows/classroom.yml`: 학생이 push할 때 실행되는 GitHub Actions workflow
 - `grader/exercises.json`: 실습 폴더, 점수, 실행할 main class 설정
 - `scripts/grade_java_exercise.py`: Java 컴파일 및 smoke test 실행기
+- `docs/GRADING_AND_PATTERN_GUIDE.md`: 채점 방식과 패턴별 주요 확인점
+
+## 채점 기준 가이드
+
+채점 방식과 실습별 주요 패턴 확인점은 `docs/GRADING_AND_PATTERN_GUIDE.md`에 정리되어 있다.
 
 ## Classroom 설정
 
