@@ -1,0 +1,9 @@
+build/
+out/
+target/
+*.class
+__pycache__/
+*.py[cod]
+.omx/
+.DS_Store
+Thumbs.db

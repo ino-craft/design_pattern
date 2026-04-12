@@ -1,0 +1,49 @@
+name: Classroom Autograding
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  grade:
+    name: Grade ${{ matrix.exercise }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        exercise:
+          - 01-delegation
+          - 02-strategy
+          - 03-observer
+          - 04-state
+          - 05-iterator
+          - 06-mediator
+          - 07-factory-method-maze
+          - 08-1-decorator-starbuzz
+          - 08-2-decorator-io
+          - 09-composite
+          - 11-1-interface-visitor
+          - 11-3-visitor
+
+    steps:
+      - name: Check out submission
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Grade exercise
+        run: python scripts/grade_java_exercise.py "${{ matrix.exercise }}"

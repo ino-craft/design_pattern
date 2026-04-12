@@ -1,0 +1,155 @@
+{
+  "javaVersion": "21",
+  "exercises": [
+    {
+      "id": "01-delegation",
+      "path": "1_delegationProblem",
+      "points": 10,
+      "runs": [
+        {
+          "class": "delegationProblem.Main",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Working like a dog",
+            "Meow",
+            "Beep"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "02-strategy",
+      "path": "2_strategy",
+      "points": 10,
+      "runs": [
+        {
+          "class": "headfirst.strategy.MiniDuckSimulator",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Quack",
+            "Squeak",
+            "I'm flying with a rocket"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "03-observer",
+      "path": "3_observerPractice",
+      "points": 10,
+      "runs": [
+        {
+          "class": "observerPractice.WeatherSimulator",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Current state",
+            "Umbrella",
+            "Selling"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "04-state",
+      "path": "4_hiroshi.State.Problem",
+      "points": 10,
+      "runs": []
+    },
+    {
+      "id": "05-iterator",
+      "path": "5_headfirst.iterator.dinemerger_pro",
+      "points": 10,
+      "runs": [
+        {
+          "class": "headfirst.iterator.dinermerger.MenuTestDrive",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "MENU",
+            "BREAKFAST",
+            "LUNCH"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "06-mediator",
+      "path": "6_hiroshi.mediatorProblem",
+      "points": 10,
+      "runs": []
+    },
+    {
+      "id": "07-factory-method-maze",
+      "path": "7_factorymethod_mazeProblem",
+      "points": 10,
+      "runs": []
+    },
+    {
+      "id": "08-1-decorator-starbuzz",
+      "path": "8-1_headfirst.decorator.starbuzzProblem",
+      "points": 10,
+      "runs": [
+        {
+          "class": "headfirst.decorator.starbuzz.StarbuzzCoffee",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Espresso",
+            "Dark Roast",
+            "House Blend"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "08-2-decorator-io",
+      "path": "8-2_headfirst.decorator.io.skeleton",
+      "points": 10,
+      "runs": []
+    },
+    {
+      "id": "09-composite",
+      "path": "9_hiroshi.directoryCompositeProblem",
+      "points": 10,
+      "runs": [
+        {
+          "class": "hiroshi.directoryCompositeProblem.Main",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Making root entries",
+            "Making user entries"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11-1-interface-visitor",
+      "path": "11_1_interfaceVisitor",
+      "points": 10,
+      "runs": [
+        {
+          "class": "Visitor.interfaceVisitor.VisitorDemo",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Visiting engine",
+            "Starting my car"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11-3-visitor",
+      "path": "11_3_hiroshi.VisitorProblem",
+      "points": 10,
+      "runs": [
+        {
+          "class": "hiroshi.VisitorProblem.Main",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Making root entries",
+            "Making user entries",
+            "diary.html"
+          ]
+        }
+      ]
+    }
+  ]
+}
