@@ -5,6 +5,27 @@
       "id": "01-delegation",
       "path": "1_delegationProblem",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "A common work role is abstract",
+          "glob": "**/*.java",
+          "regex": "abstract\\s+class\\s+\\w+[^\\{]*\\{.*abstract\\s+void\\s+doWork\\s*\\(",
+          "hint": "Delegation starts with a stable role that clients can call without knowing each concrete worker."
+        },
+        {
+          "name": "A speaking role is an interface",
+          "glob": "**/*.java",
+          "regex": "interface\\s+\\w+[^\\{]*\\{.*void\\s+say\\s*\\(",
+          "hint": "Separate speaking behavior from the worker inheritance path."
+        },
+        {
+          "name": "Multiple concrete actors implement speaking behavior",
+          "glob": "**/*.java",
+          "regex": "void\\s+say\\s*\\(",
+          "minMatches": 3,
+          "hint": "Concrete actors should be usable through the same speaking contract without client-side type checks."
+        }
+      ],
       "runs": [
         {
           "class": "delegationProblem.Main",
@@ -15,12 +36,46 @@
             "Beep"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "delegation-worker-and-sayable",
+          "source": "grader/java-tests/behavior/delegation/DelegationBehaviorTest.java",
+          "class": "grader.behavior.delegation.DelegationBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Working like a dog",
+            "Working like a cat",
+            "Beep",
+            "PASS delegation behavior"
+          ]
+        }
       ]
     },
     {
       "id": "02-strategy",
       "path": "2_strategy",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Variable behaviors are interfaces",
+          "glob": "**/*.java",
+          "regex": [
+            "interface\\s+\\w+[^\\{]*\\{[^}]*void\\s+fly\\s*\\(",
+            "interface\\s+\\w+[^\\{]*\\{[^}]*void\\s+quack\\s*\\("
+          ],
+          "hint": "Strategy needs interchangeable behavior contracts, not hard-coded algorithms."
+        },
+        {
+          "name": "The context composes behavior strategies",
+          "glob": "**/*.java",
+          "regex": [
+            "\\w+Behavior\\s+\\w+",
+            "set\\w+Behavior\\s*\\(\\s*\\w+Behavior"
+          ],
+          "hint": "The context should delegate variable behavior to replaceable behavior objects."
+        }
+      ],
       "runs": [
         {
           "class": "headfirst.strategy.MiniDuckSimulator",
@@ -31,12 +86,41 @@
             "I'm flying with a rocket"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "strategy-runtime-swap",
+          "source": "grader/java-tests/behavior/strategy/StrategyBehaviorTest.java",
+          "class": "grader.behavior.strategy.StrategyBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "I can't fly",
+            "I'm flying with a rocket",
+            "<< Silence >>",
+            "PASS strategy runtime swap"
+          ]
+        }
       ]
     },
     {
       "id": "03-observer",
       "path": "3_observerPractice",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Subject exposes a notification step",
+          "glob": "**/*.java",
+          "regex": "void\\s+notify(DataSetChanged|Observers)\\s*\\(",
+          "hint": "A subject should have one method that broadcasts state changes to dependents."
+        },
+        {
+          "name": "Stores react through weatherChanged",
+          "glob": "**/*.java",
+          "regex": "void\\s+\\w*Changed\\s*\\(",
+          "minMatches": 2,
+          "hint": "Observers should react through a common update-style callback."
+        }
+      ],
       "runs": [
         {
           "class": "observerPractice.WeatherSimulator",
@@ -47,18 +131,88 @@
             "Selling"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "observer-weather-notification",
+          "source": "grader/java-tests/behavior/observer/ObserverBehaviorTest.java",
+          "class": "grader.behavior.observer.ObserverBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "Umbrella Sale !",
+            "Selling Winter cloths !",
+            "Umbrella Not Sale !",
+            "Selling Summer cloths !",
+            "PASS observer notifications"
+          ]
+        }
       ]
     },
     {
       "id": "04-state",
       "path": "4_hiroshi.State.Problem",
       "points": 10,
-      "runs": []
+      "structureChecks": [
+        {
+          "name": "State interface defines state-dependent actions",
+          "glob": "**/*.java",
+          "regex": [
+            "void\\s+doClock\\s*\\(",
+            "void\\s+doUse\\s*\\(",
+            "void\\s+doAlarm\\s*\\(",
+            "void\\s+doPhone\\s*\\("
+          ],
+          "hint": "State should move condition-heavy behavior behind a shared action contract."
+        },
+        {
+          "name": "Day and night states implement State",
+          "glob": "**/*.java",
+          "regex": "class\\s+\\w+\\s+implements\\s+\\w+",
+          "minMatches": 2,
+          "hint": "Each concrete state owns its own transition and action behavior."
+        }
+      ],
+      "runs": [],
+      "behaviorTests": [
+        {
+          "name": "state-clock-transitions",
+          "source": "grader/java-tests/behavior/state/StateBehaviorTest.java",
+          "class": "grader.behavior.state.StateBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS state transitions"
+          ]
+        }
+      ]
     },
     {
       "id": "05-iterator",
       "path": "5_headfirst.iterator.dinemerger_pro",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Iterator contract is explicit",
+          "glob": "**/*.java",
+          "regex": [
+            "boolean\\s+hasNext\\s*\\(",
+            "Object\\s+next\\s*\\("
+          ],
+          "hint": "Iterator hides each menu collection's storage details behind traversal operations."
+        },
+        {
+          "name": "Menus create iterators",
+          "glob": "**/*.java",
+          "regex": "\\w+\\s+createIterator\\s*\\(",
+          "minMatches": 2,
+          "hint": "Clients should ask menus for iterators instead of reaching into arrays or lists."
+        },
+        {
+          "name": "Client code depends on Iterator",
+          "glob": "**/*.java",
+          "regex": "printMenu\\s*\\(\\s*\\w+\\s+",
+          "hint": "The client should print menus through the iterator abstraction."
+        }
+      ],
       "runs": [
         {
           "class": "headfirst.iterator.dinermerger.MenuTestDrive",
@@ -69,24 +223,160 @@
             "LUNCH"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "iterator-menu-traversal",
+          "source": "grader/java-tests/behavior/iterator/IteratorBehaviorTest.java",
+          "class": "grader.behavior.iterator.IteratorBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS iterator traversal"
+          ]
+        }
       ]
     },
     {
       "id": "06-mediator",
       "path": "6_hiroshi.mediatorProblem",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Mediator contract coordinates colleagues",
+          "glob": "**/*.java",
+          "regex": [
+            "void\\s+createColleagues\\s*\\(",
+            "void\\s+colleagueChanged\\s*\\("
+          ],
+          "hint": "Mediator centralizes UI coordination rules."
+        },
+        {
+          "name": "Colleague contract depends on mediator",
+          "glob": "**/*.java",
+          "regex": [
+            "void\\s+setMediator\\s*\\(\\s*\\w+",
+            "void\\s+setColleagueEnabled\\s*\\(\\s*boolean"
+          ],
+          "hint": "Colleagues should expose enable/disable behavior without controlling peers directly."
+        },
+        {
+          "name": "UI colleagues implement Colleague",
+          "glob": "**/*.java",
+          "regex": "implements\\s+[^\\{]*Colleague",
+          "minMatches": 3,
+          "hint": "Every widget that participates in coordination should speak the Colleague contract."
+        },
+        {
+          "name": "A coordinator implements Mediator",
+          "glob": "**/*.java",
+          "regex": "class\\s+\\w+\\s+extends\\s+\\w+\\s+implements\\s+[^\\{]*Mediator",
+          "hint": "The frame owns the coordination rules instead of scattering them across widgets."
+        }
+      ],
       "runs": []
     },
     {
       "id": "07-factory-method-maze",
       "path": "7_factorymethod_mazeProblem",
       "points": 10,
-      "runs": []
+      "structureChecks": [
+        {
+          "name": "MazeGameCreator exposes factory methods",
+          "path": "maze/MazeGameCreator.java",
+          "regex": [
+            "Maze\\s+makeMaze\\s*\\(",
+            "Wall\\s+makeWall\\s*\\(",
+            "Room\\s+makeRoom\\s*\\(",
+            "Door\\s+makeDoor\\s*\\("
+          ],
+          "hint": "Factory Method keeps the maze-building algorithm stable while subclasses choose products."
+        },
+        {
+          "name": "A concrete creator overrides product family",
+          "glob": "maze/*/*GameCreator.java",
+          "regex": [
+            "extends\\s+MazeGameCreator",
+            "new\\s+\\w+Wall\\s*\\(",
+            "new\\s+\\w+Room\\s*\\(",
+            "new\\s+\\w+Door\\s*\\("
+          ],
+          "hint": "A concrete creator should return a consistent product family."
+        },
+        {
+          "name": "Snow creator completes the factory-method exercise",
+          "glob": "maze/snow/*GameCreator.java",
+          "regex": [
+            "extends\\s+MazeGameCreator",
+            "new\\s+\\w+Wall\\s*\\(",
+            "new\\s+\\w+Room\\s*\\(",
+            "new\\s+\\w+Door\\s*\\("
+          ],
+          "notContains": "return null",
+          "hint": "The variant creator skeleton should inherit MazeGameCreator and return concrete products instead of null."
+        },
+        {
+          "name": "Abstract factory client uses factory object",
+          "path": "maze/MazeGameAbstractFactory.java",
+          "regex": [
+            "createMaze\\s*\\(\\s*MazeFactory\\s+factory\\s*\\)",
+            "factory\\.makeRoom\\s*\\(",
+            "factory\\.makeDoor\\s*\\(",
+            "factory\\.makeWall\\s*\\("
+          ],
+          "hint": "Abstract Factory passes one product-family factory into the maze-building algorithm."
+        },
+        {
+          "name": "Snow abstract factory completes the exercise",
+          "glob": "maze/snow/*Factory.java",
+          "regex": [
+            "extends\\s+MazeFactory",
+            "new\\s+\\w+Wall\\s*\\(",
+            "new\\s+\\w+Room\\s*\\(",
+            "new\\s+\\w+Door\\s*\\("
+          ],
+          "notContains": "return null",
+          "hint": "The variant factory skeleton should inherit MazeFactory and return concrete products instead of null."
+        }
+      ],
+      "runs": [],
+      "behaviorTests": [
+        {
+          "name": "factory-product-family",
+          "source": "grader/java-tests/behavior/factory/FactoryBehaviorTest.java",
+          "class": "maze.harry.FactoryBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS factory product families"
+          ]
+        }
+      ]
     },
     {
       "id": "08-1-decorator-starbuzz",
       "path": "8-1_headfirst.decorator.starbuzzProblem",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Decorator base keeps the component type",
+          "glob": "**/*.java",
+          "regex": "abstract\\s+class\\s+\\w*Decorator\\s+extends\\s+\\w+",
+          "hint": "Decorators must be substitutable wherever a Beverage is expected."
+        },
+        {
+          "name": "Concrete decorators wrap another component",
+          "glob": "**/*.java",
+          "regex": "\\w+\\s+beverage",
+          "minMatches": 4,
+          "hint": "Each condiment should hold the beverage it decorates and add to its behavior."
+        },
+        {
+          "name": "Concrete decorators share a decorator base",
+          "glob": "**/*.java",
+          "regex": "extends\\s+\\w*Decorator",
+          "minMatches": 4,
+          "hint": "Concrete decorators should share the decorator base type."
+        }
+      ],
       "runs": [
         {
           "class": "headfirst.decorator.starbuzz.StarbuzzCoffee",
@@ -97,18 +387,87 @@
             "House Blend"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "starbuzz-decorator-stack",
+          "source": "grader/java-tests/behavior/decorator/StarbuzzDecoratorBehaviorTest.java",
+          "class": "grader.behavior.decorator.StarbuzzDecoratorBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS starbuzz decorator stack"
+          ]
+        }
       ]
     },
     {
       "id": "08-2-decorator-io",
       "path": "8-2_headfirst.decorator.io.skeleton",
       "points": 10,
-      "runs": []
+      "structureChecks": [
+        {
+          "name": "LowerCaseInputStream decorates FilterInputStream",
+          "glob": "**/*.java",
+          "regex": "class\\s+\\w+\\s+extends\\s+FilterInputStream",
+          "hint": "Java IO decorators should wrap an InputStream through FilterInputStream."
+        },
+        {
+          "name": "Both read methods are overridden",
+          "glob": "**/*.java",
+          "regex": [
+            "int\\s+read\\s*\\(\\s*\\)\\s+throws\\s+IOException",
+            "int\\s+read\\s*\\(\\s*byte\\[\\]\\s+\\w+\\s*,\\s*int\\s+\\w+\\s*,\\s*int\\s+\\w+\\s*\\)\\s+throws\\s+IOException"
+          ],
+          "hint": "The decorator should preserve the InputStream contract for both single-byte and bulk reads."
+        }
+      ],
+      "runs": [],
+      "behaviorTests": [
+        {
+          "name": "lowercase-inputstream-decorator",
+          "source": "grader/java-tests/behavior/decorator/LowerCaseDecoratorBehaviorTest.java",
+          "class": "grader.behavior.decorator.LowerCaseDecoratorBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS lowercase decorator stream"
+          ]
+        }
+      ]
     },
     {
       "id": "09-composite",
       "path": "9_hiroshi.directoryCompositeProblem",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Entry is the shared component",
+          "glob": "**/*.java",
+          "regex": [
+            "abstract\\s+class\\s+\\w+",
+            "abstract\\s+String\\s+getName\\s*\\(",
+            "abstract\\s+int\\s+getSize\\s*\\(",
+            "\\w+\\s+add\\s*\\(\\s*\\w+\\s+\\w+\\s*\\)"
+          ],
+          "hint": "Composite starts with one component type for both leaf and composite nodes."
+        },
+        {
+          "name": "Leaf and composite share a component base",
+          "glob": "**/*.java",
+          "regex": "extends\\s+\\w+",
+          "minMatches": 2,
+          "hint": "Clients should treat files and directories uniformly through Entry."
+        },
+        {
+          "name": "Composite stores child entries",
+          "glob": "**/*.java",
+          "regex": [
+            "ArrayList\\s+\\w+\\s*=\\s+new\\s+ArrayList",
+            "\\w+\\s+entry",
+            "entry\\.getSize\\s*\\("
+          ],
+          "hint": "A composite node should own child entries and aggregate their behavior recursively."
+        }
+      ],
       "runs": [
         {
           "class": "hiroshi.directoryCompositeProblem.Main",
@@ -118,12 +477,39 @@
             "Making user entries"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "composite-tree-size-and-leaf-rule",
+          "source": "grader/java-tests/behavior/composite/CompositeBehaviorTest.java",
+          "class": "grader.behavior.composite.CompositeBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS composite tree behavior"
+          ]
+        }
       ]
     },
     {
       "id": "11-1-interface-visitor",
       "path": "11_1_interfaceVisitor",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Visitor overloads each element type",
+          "glob": "**/*.java",
+          "regex": "void\\s+visit\\s*\\(\\s*\\w+\\s+",
+          "minMatches": 4,
+          "hint": "Visitor uses overloaded visit methods to separate operations from element classes."
+        },
+        {
+          "name": "Elements accept visitors",
+          "glob": "**/*.java",
+          "regex": "accept\\s*\\(\\s*\\w+Visitor\\s+visitor\\s*\\)",
+          "minMatches": 5,
+          "hint": "Each element should call back into the visitor using accept."
+        }
+      ],
       "runs": [
         {
           "class": "Visitor.interfaceVisitor.VisitorDemo",
@@ -133,12 +519,54 @@
             "Starting my car"
           ]
         }
+      ],
+      "behaviorTests": [
+        {
+          "name": "interface-visitor-counting",
+          "source": "grader/java-tests/behavior/visitor/InterfaceVisitorBehaviorTest.java",
+          "class": "Visitor.interfaceVisitor.InterfaceVisitorBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS interface visitor traversal"
+          ]
+        }
       ]
     },
     {
       "id": "11-3-visitor",
       "path": "11_3_hiroshi.VisitorProblem",
       "points": 10,
+      "structureChecks": [
+        {
+          "name": "Element accepts Visitor",
+          "glob": "**/*.java",
+          "regex": "void\\s+accept\\s*\\(\\s*\\w+\\s+\\w+\\s*\\)",
+          "hint": "Element is the stable hook that allows new operations to be added as visitors."
+        },
+        {
+          "name": "Visitor overloads concrete element types",
+          "glob": "**/*.java",
+          "regex": "void\\s+visit\\s*\\(\\s*\\w+\\s+",
+          "minMatches": 2,
+          "hint": "Double dispatch relies on visitor overloads for each concrete element."
+        },
+        {
+          "name": "Concrete elements dispatch to visitor",
+          "glob": "**/*.java",
+          "regex": "v\\.visit\\s*\\(\\s*this\\s*\\)",
+          "minMatches": 2,
+          "hint": "Concrete elements should delegate operations to the visitor, not perform every operation themselves."
+        },
+        {
+          "name": "ListVisitor traverses directory children",
+          "path": "hiroshi/VisitorProblem/ListVisitor.java",
+          "regex": [
+            "directory\\.iterator\\s*\\(",
+            "entry\\.accept\\s*\\(\\s*this\\s*\\)"
+          ],
+          "hint": "A visitor can carry traversal state while walking a composite structure."
+        }
+      ],
       "runs": [
         {
           "class": "hiroshi.VisitorProblem.Main",
@@ -147,6 +575,17 @@
             "Making root entries",
             "Making user entries",
             "diary.html"
+          ]
+        }
+      ],
+      "behaviorTests": [
+        {
+          "name": "directory-visitor-counting",
+          "source": "grader/java-tests/behavior/visitor/DirectoryVisitorBehaviorTest.java",
+          "class": "grader.behavior.visitor.DirectoryVisitorBehaviorTest",
+          "timeoutSeconds": 5,
+          "expectedOutputContains": [
+            "PASS directory visitor traversal"
           ]
         }
       ]

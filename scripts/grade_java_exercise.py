@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,16 @@ def java_sources(exercise_dir: Path) -> list[Path]:
             continue
         sources.append(path)
     return sorted(sources)
+
+
+def as_string_list(value: Any, field_name: str) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return value
+    raise ValueError(f"{field_name} must be a string or an array of strings")
 
 
 def run_command(
@@ -131,17 +142,26 @@ def run_main_class(
     classes_dir: Path,
     run_config: dict[str, Any],
 ) -> tuple[bool, str]:
+    return run_java_class(root, [classes_dir], run_config)
+
+
+def run_java_class(
+    root: Path,
+    classpath_entries: list[Path],
+    run_config: dict[str, Any],
+) -> tuple[bool, str]:
     main_class = run_config["class"]
     timeout_seconds = int(run_config.get("timeoutSeconds", 5))
     stdin = run_config.get("stdin")
     arguments = run_config.get("args", [])
     expected_parts = run_config.get("expectedOutputContains", [])
+    classpath = os.pathsep.join(str(path) for path in classpath_entries)
 
     command = [
         "java",
         "-Djava.awt.headless=true",
         "-cp",
-        str(classes_dir),
+        classpath,
         main_class,
         *arguments,
     ]
@@ -163,6 +183,195 @@ def run_main_class(
         )
 
     return True, output
+
+
+def compile_behavior_tests(
+    root: Path,
+    exercise: dict[str, Any],
+    classes_dir: Path,
+    build_root: Path,
+) -> tuple[bool, Path, str]:
+    exercise_id = exercise["id"]
+    test_classes_dir = build_root / exercise_id / "test-classes"
+    tests = exercise.get("behaviorTests", [])
+
+    sources: list[Path] = []
+    for test in tests:
+        source = test.get("source")
+        if not source:
+            return False, test_classes_dir, f"Behavior test for {exercise_id} is missing source"
+        source_path = root / source
+        if not source_path.exists():
+            return False, test_classes_dir, f"Behavior test source does not exist: {source}"
+        sources.append(source_path)
+
+    if test_classes_dir.exists():
+        shutil.rmtree(test_classes_dir)
+    test_classes_dir.mkdir(parents=True, exist_ok=True)
+
+    command = [
+        "javac",
+        "-encoding",
+        "UTF-8",
+        "-cp",
+        str(classes_dir),
+        "-d",
+        str(test_classes_dir),
+        *map(str, sorted(sources)),
+    ]
+    exit_code, output = run_command(command, root, timeout_seconds=60)
+    if exit_code != 0:
+        return False, test_classes_dir, output
+
+    return True, test_classes_dir, output
+
+
+def run_behavior_tests(
+    root: Path,
+    exercise: dict[str, Any],
+    classes_dir: Path,
+    build_root: Path,
+    *,
+    verbose: bool,
+) -> tuple[bool, str]:
+    tests = exercise.get("behaviorTests", [])
+    if not tests:
+        print("behavior: none configured")
+        return True, ""
+
+    passed, test_classes_dir, compile_output = compile_behavior_tests(
+        root,
+        exercise,
+        classes_dir,
+        build_root,
+    )
+    if not passed:
+        return False, output_excerpt(compile_output)
+    if verbose and compile_output.strip():
+        print(compile_output)
+    print("behavior compile: pass")
+
+    for test_config in tests:
+        label = test_config.get("name", test_config["class"])
+        passed, output = run_java_class(
+            root,
+            [classes_dir, test_classes_dir],
+            test_config,
+        )
+        if not passed:
+            return False, f"{label} failed\n{output_excerpt(output)}"
+        if verbose and output.strip():
+            print(output)
+        print(f"behavior {label}: pass")
+
+    return True, ""
+
+
+def structure_check_sources(
+    exercise_dir: Path,
+    check: dict[str, Any],
+) -> tuple[bool, list[Path], str]:
+    paths: list[Path] = []
+
+    for item in as_string_list(check.get("path"), "path"):
+        paths.append(exercise_dir / item)
+
+    for item in as_string_list(check.get("paths"), "paths"):
+        paths.append(exercise_dir / item)
+
+    for pattern in as_string_list(check.get("glob"), "glob"):
+        paths.extend(sorted(exercise_dir.glob(pattern)))
+
+    if not paths:
+        return False, [], "no path, paths, or glob configured"
+
+    missing = [path for path in paths if not path.exists()]
+    if missing:
+        relative = ", ".join(str(path.relative_to(exercise_dir)) for path in missing)
+        return False, [], f"missing source file(s): {relative}"
+
+    files = [path for path in paths if path.is_file()]
+    if not files:
+        return False, [], "no source files matched"
+
+    return True, sorted(set(files)), ""
+
+
+def strip_java_comments(text: str) -> str:
+    return re.sub(r"/\*.*?\*/|//[^\r\n]*", "", text, flags=re.DOTALL)
+
+
+def run_structure_check(exercise_dir: Path, check: dict[str, Any]) -> tuple[bool, str]:
+    ok, sources, message = structure_check_sources(exercise_dir, check)
+    if not ok:
+        return False, message
+
+    source_texts = [
+        strip_java_comments(path.read_text(encoding="utf-8", errors="replace"))
+        for path in sources
+    ]
+    combined = "\n".join(source_texts)
+    label = check.get("name", "structure check")
+
+    for expected in as_string_list(check.get("contains"), "contains"):
+        if expected not in combined:
+            return False, f"{label}: expected source to contain {expected!r}"
+
+    for forbidden in as_string_list(check.get("notContains"), "notContains"):
+        if forbidden in combined:
+            return False, f"{label}: source must not contain {forbidden!r}"
+
+    flags = re.MULTILINE | re.DOTALL
+    for pattern in as_string_list(check.get("regex"), "regex"):
+        if re.search(pattern, combined, flags) is None:
+            return False, f"{label}: expected regex {pattern!r} to match"
+
+    for pattern in as_string_list(check.get("notRegex"), "notRegex"):
+        if re.search(pattern, combined, flags) is not None:
+            return False, f"{label}: forbidden regex {pattern!r} matched"
+
+    if "minMatches" in check:
+        patterns = as_string_list(check.get("regex"), "regex")
+        if len(patterns) != 1:
+            return False, f"{label}: minMatches requires exactly one regex"
+        count = len(re.findall(patterns[0], combined, flags))
+        minimum = int(check["minMatches"])
+        if count < minimum:
+            return False, (
+                f"{label}: expected at least {minimum} matches for "
+                f"{patterns[0]!r}, found {count}"
+            )
+
+    return True, ""
+
+
+def run_structure_checks(
+    root: Path,
+    exercise: dict[str, Any],
+) -> tuple[bool, str]:
+    checks = exercise.get("structureChecks", [])
+    if not checks:
+        print("structure: none configured")
+        return True, ""
+
+    exercise_dir = root / exercise["path"]
+    failures: list[str] = []
+    for check in checks:
+        label = check.get("name", "structure check")
+        passed, message = run_structure_check(exercise_dir, check)
+        if passed:
+            print(f"structure {label}: pass")
+            continue
+
+        hint = check.get("hint")
+        if hint:
+            message = f"{message}\nHint: {hint}"
+        failures.append(message)
+
+    if failures:
+        return False, "\n".join(failures)
+
+    return True, ""
 
 
 def grade_exercise(
@@ -203,32 +412,57 @@ def grade_exercise(
             "reason": "compile passed",
         }
 
-    runs = exercise.get("runs", [])
-    if not runs:
-        print("run: none configured")
+    passed, structure_output = run_structure_checks(root, exercise)
+    if not passed:
+        message = output_excerpt(structure_output)
+        print(message)
+        github_error(f"{exercise_id} structure failed", message)
         return {
             "id": exercise_id,
             "path": exercise["path"],
             "points": exercise.get("points", 0),
-            "passed": True,
-            "reason": "compile passed",
+            "passed": False,
+            "reason": "structure check failed",
         }
 
-    for run_config in runs:
-        passed, output = run_main_class(root, classes_dir, run_config)
-        if not passed:
-            print(output)
-            github_error(f"{exercise_id} run failed", output_excerpt(output))
-            return {
-                "id": exercise_id,
-                "path": exercise["path"],
-                "points": exercise.get("points", 0),
-                "passed": False,
-                "reason": f"{run_config['class']} failed",
-            }
-        if verbose and output.strip():
-            print(output)
-        print(f"run {run_config['class']}: pass")
+    runs = exercise.get("runs", [])
+    if not runs:
+        print("run: none configured")
+    else:
+        for run_config in runs:
+            passed, output = run_main_class(root, classes_dir, run_config)
+            if not passed:
+                print(output)
+                github_error(f"{exercise_id} run failed", output_excerpt(output))
+                return {
+                    "id": exercise_id,
+                    "path": exercise["path"],
+                    "points": exercise.get("points", 0),
+                    "passed": False,
+                    "reason": f"{run_config['class']} failed",
+                }
+            if verbose and output.strip():
+                print(output)
+            print(f"run {run_config['class']}: pass")
+
+    passed, behavior_output = run_behavior_tests(
+        root,
+        exercise,
+        classes_dir,
+        build_root,
+        verbose=verbose,
+    )
+    if not passed:
+        message = output_excerpt(behavior_output)
+        print(message)
+        github_error(f"{exercise_id} behavior failed", message)
+        return {
+            "id": exercise_id,
+            "path": exercise["path"],
+            "points": exercise.get("points", 0),
+            "passed": False,
+            "reason": "behavior test failed",
+        }
 
     return {
         "id": exercise_id,
