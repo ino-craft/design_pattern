@@ -4,14 +4,15 @@
 
 ## 현재 자동 채점 방식
 
-현재 구성은 공개 smoke test 방식이다. 학생이 push하면 GitHub Actions가 각 실습 폴더를 독립 job으로 실행한다.
+현재 구성은 공개 구조 검사와 동작 테스트를 함께 쓰는 방식이다. 학생이 push하면 GitHub Actions가 각 실습 폴더를 독립 job으로 실행한다.
 
 1. `actions/setup-java`로 Java 21을 준비한다.
 2. `scripts/grade_java_exercise.py`가 `grader/exercises.json`을 읽는다.
 3. 각 실습 폴더 아래의 `*.java` 파일을 `javac -encoding UTF-8`로 컴파일한다.
-4. `runs`가 설정된 실습은 지정된 `main` class를 실행한다.
-5. 출력에 `expectedOutputContains` 문자열이 모두 포함되면 통과로 본다.
-6. 컴파일 실패, 실행 실패, timeout, 기대 출력 누락은 해당 실습 실패로 처리한다.
+4. `structureChecks`로 교안에서 요구한 클래스, 인터페이스, 상속/구현 관계, 주요 메서드가 있는지 확인한다.
+5. `runs`가 설정된 실습은 지정된 `main` class를 실행한다.
+6. `behaviorTests`가 설정된 실습은 별도 Java 테스트 드라이버를 컴파일하고 실행한다.
+7. 컴파일 실패, 구조 검사 실패, 실행 실패, timeout, 기대 출력 누락은 해당 실습 실패로 처리한다.
 
 기본 점수는 실습별 10점, 총 120점이다. 현재 스크립트는 실습 단위 pass/fail 방식이라 한 실습 안에서 부분 점수를 계산하지 않는다.
 
@@ -21,8 +22,9 @@
 
 - 제출물이 Linux GitHub Actions 환경에서 컴파일되는가
 - 패키지명, 클래스명, public API가 깨지지 않았는가
-- 콘솔 실행이 가능한 예제는 최소 동작을 유지하는가
-- GUI 또는 무한 루프 성격의 예제는 최소한 컴파일 가능한가
+- 교안의 각 Practice에서 요구한 확장 클래스와 핵심 메서드가 추가되었는가
+- 콘솔 또는 headless 테스트가 가능한 예제는 요구 동작을 만족하는가
+- GUI 예제는 실행 대신 구조 검사나 작은 모델 테스트로 핵심 규칙을 확인할 수 있는가
 
 패턴을 제대로 적용했는지는 자동 채점만으로 완전히 판정하기 어렵다. 필요한 경우 아래의 패턴별 확인점을 기준으로 수동 리뷰나 추가 테스트를 붙인다.
 
@@ -42,18 +44,18 @@ Classroom 점수는 자동 채점으로 빠르게 부여하고, 중요한 과제
 
 | ID | 폴더 | 자동 채점 | 실행 기준 |
 | --- | --- | --- | --- |
-| `01-delegation` | `1_delegationProblem` | 컴파일 + 실행 | `delegationProblem.Main` 출력에 `Working like a dog`, `Meow`, `Beep` 포함 |
-| `02-strategy` | `2_strategy` | 컴파일 + 실행 | `MiniDuckSimulator` 출력에 `Quack`, `Squeak`, rocket fly 포함 |
-| `03-observer` | `3_observerPractice` | 컴파일 + 실행 | 날씨 상태, 우산 판매, 의류 판매 출력 포함 |
-| `04-state` | `4_hiroshi.State.Problem` | 컴파일 | GUI와 무한 루프가 있어 실행 테스트 제외 |
-| `05-iterator` | `5_headfirst.iterator.dinemerger_pro` | 컴파일 + 실행 | 메뉴 출력에 `MENU`, `BREAKFAST`, `LUNCH` 포함 |
-| `06-mediator` | `6_hiroshi.mediatorProblem` | 컴파일 | GUI 예제라 실행 테스트 제외 |
-| `07-factory-method-maze` | `7_factorymethod_mazeProblem` | 컴파일 | Swing maze 예제라 실행 테스트 제외 |
-| `08-1-decorator-starbuzz` | `8-1_headfirst.decorator.starbuzzProblem` | 컴파일 + 실행 | 음료 설명에 `Espresso`, `Dark Roast`, `House Blend` 포함 |
-| `08-2-decorator-io` | `8-2_headfirst.decorator.io.skeleton` | 컴파일 | 반복 입력 루프가 있어 실행 테스트 제외 |
-| `09-composite` | `9_hiroshi.directoryCompositeProblem` | 컴파일 + 실행 | root/user directory 출력 포함 |
-| `11-1-interface-visitor` | `11_1_interfaceVisitor` | 컴파일 + 실행 | visitor 출력에 `Visiting engine`, `Starting my car` 포함 |
-| `11-3-visitor` | `11_3_hiroshi.VisitorProblem` | 컴파일 + 실행 | root/user directory와 `diary.html` 출력 포함 |
+| `01-delegation` | `1_delegationProblem` | 컴파일 + 구조 + 실행 + 동작 | `EmployeeType`, `Regular`, `Manager`, 동적 `setEmployeeType`, `increaseSalary` 계산 |
+| `02-strategy` | `2_strategy` | 컴파일 + 구조 + 실행 + 동작 | `DoubleQuack`, `EggBehavior`, `SpawnEgg`, `SpawnNothing`, `ModelDuck.CopyBehavior` |
+| `03-observer` | `3_observerPractice` | 컴파일 + 구조 + 실행 + 동작 | `java.util.Observable/Observer`, `IceCreamStore`, `notifyObservers` 통지 |
+| `04-state` | `4_hiroshi.State.Problem` | 컴파일 + 구조 + 동작 | `UrgentState`, Alarm 전환, urgent 상태의 Use/Alarm/Phone 메시지 |
+| `05-iterator` | `5_headfirst.iterator.dinemerger_pro` | 컴파일 + 구조 + 실행 + 동작 | Java `Iterator`, `AlternatingDinerMenuIterator`, `CafeMenu` Hashtable iterator |
+| `06-mediator` | `6_hiroshi.mediatorProblem` | 컴파일 + 구조 | username/password 각각 4자 이상일 때만 login 가능 |
+| `07-factory-method-maze` | `7_factorymethod_mazeProblem` | 컴파일 + 구조 + 동작 | Snow Abstract Factory, Snow Factory Method, Prototype main의 Harry/Snow 분기 |
+| `08-1-decorator-starbuzz` | `8-1_headfirst.decorator.starbuzzProblem` | 컴파일 + 구조 + 실행 + 동작 | HouseBlend에 Soy/Mocha/Whip 조합과 역순 조합의 누적 가격 |
+| `08-2-decorator-io` | `8-2_headfirst.decorator.io.skeleton` | 컴파일 + 구조 + 동작 | `ShiftInputStream`의 offset 변환, 알파벳 wrapping, stream 조합 |
+| `09-composite` | `9_hiroshi.directoryCompositeProblem` | 컴파일 + 구조 + 실행 + 동작 | parent 링크와 `getFullName()` 전체 경로 계산 |
+| `11-1-interface-visitor` | `11_1_interfaceVisitor` | 컴파일 + 구조 + 실행 + 동작 | `CarElementDestroyVisitor`, `Trunk` element, visitor overload 확장 |
+| `11-3-visitor` | `11_3_hiroshi.VisitorProblem` | 컴파일 + 구조 + 실행 + 동작 | `FileFindVisitor(".html")`, `getFoundFiles()` 결과 |
 
 ## 패턴별 주요 확인점
 

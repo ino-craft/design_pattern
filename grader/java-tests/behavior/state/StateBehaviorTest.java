@@ -1,8 +1,4 @@
-package grader.behavior.state;
-
-import hiroshi.state.problem.Context;
-import hiroshi.state.problem.NightState;
-import hiroshi.state.problem.State;
+package hiroshi.state.problem;
 
 public class StateBehaviorTest {
     private static class RecordingContext implements Context {
@@ -51,7 +47,19 @@ public class StateBehaviorTest {
         assertContains(context.events(), "log=Use(Daytime)");
         assertContains(context.events(), "log=Recording Phone(Night time)");
 
-        System.out.println("PASS state transitions");
+        context.state = DayState.getInstance();
+        context.state.doAlarm(context);
+        assertStateClass("UrgentState", context.state);
+
+        context.state.doUse(context);
+        context.state.doAlarm(context);
+        context.state.doPhone(context);
+
+        assertContains(context.events(), "security=Use(UrgentState)!!!!");
+        assertContains(context.events(), "security=Alarm(UrgentState)");
+        assertContains(context.events(), "security=Phone(UrgentState)");
+
+        System.out.println("PASS state urgent transitions");
     }
 
     private static void assertEquals(String expected, String actual, String message) {
@@ -63,6 +71,12 @@ public class StateBehaviorTest {
     private static void assertContains(String text, String expected) {
         if (!text.contains(expected)) {
             throw new AssertionError("Expected events to contain " + expected + " but got:\n" + text);
+        }
+    }
+
+    private static void assertStateClass(String expectedSimpleName, State state) {
+        if (!state.getClass().getSimpleName().equals(expectedSimpleName)) {
+            throw new AssertionError("Expected state " + expectedSimpleName + ", got " + state.getClass().getName());
         }
     }
 }

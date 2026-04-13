@@ -1,10 +1,5 @@
-package grader.behavior.visitor;
+package hiroshi.VisitorProblem;
 
-import hiroshi.VisitorProblem.Directory;
-import hiroshi.VisitorProblem.Entry;
-import hiroshi.VisitorProblem.File;
-import hiroshi.VisitorProblem.FileTreatmentException;
-import hiroshi.VisitorProblem.Visitor;
 import java.util.Iterator;
 
 public class DirectoryVisitorBehaviorTest {
@@ -12,22 +7,41 @@ public class DirectoryVisitorBehaviorTest {
         Directory root = new Directory("root");
         Directory home = new Directory("home");
         root.add(home);
+        home.add(new File("diary.html", 100));
         home.add(new File("memo.txt", 100));
         home.add(new File("todo.txt", 200));
 
         CountingVisitor visitor = new CountingVisitor();
         root.accept(visitor);
 
-        if (visitor.directories != 2 || visitor.files != 2 || visitor.totalSize != 300) {
+        if (visitor.directories != 2 || visitor.files != 3 || visitor.totalSize != 400) {
             throw new AssertionError(
-                "Expected 2 directories, 2 files, size 300 but got "
+                "Expected 2 directories, 3 files, size 400 but got "
                     + visitor.directories + ", "
                     + visitor.files + ", "
                     + visitor.totalSize
             );
         }
 
-        System.out.println("PASS directory visitor traversal");
+        FileFindVisitor htmlFinder = new FileFindVisitor(".html");
+        root.accept(htmlFinder);
+        Iterator found = htmlFinder.getFoundFiles();
+        int htmlCount = 0;
+        boolean foundDiary = false;
+        while (found.hasNext()) {
+            Object item = found.next();
+            if (!(item instanceof File)) {
+                throw new AssertionError("FileFindVisitor should return File entries");
+            }
+            File file = (File) item;
+            htmlCount++;
+            foundDiary = foundDiary || file.getName().equals("diary.html");
+        }
+        if (htmlCount != 1 || !foundDiary) {
+            throw new AssertionError("Expected FileFindVisitor to find only diary.html");
+        }
+
+        System.out.println("PASS directory visitor file find");
     }
 
     private static class CountingVisitor extends Visitor {

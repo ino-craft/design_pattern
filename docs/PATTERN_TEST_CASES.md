@@ -63,10 +63,15 @@ Example:
 
 ## Intentional Starter Failures
 
-Some structure checks are meant to guide incomplete practice skeletons. For
-example, the SnowWhite factory-method and abstract-factory classes are expected
-to fail until they inherit the right factory base class and return SnowWhite
-products instead of `null`.
+Some structure checks are meant to guide incomplete practice skeletons. The
+checks now follow the PPT practice guide
+`1.1 Design Patterns 실습교안 v.1.25.5－20260413.pptx`, so the starter is expected
+to fail until the exercise-specific extension is implemented. Examples include
+`DoubleQuack`, `IceCreamStore`, `UrgentState`, `ShiftInputStream`,
+`getFullName()`, `CarElementDestroyVisitor`, `Trunk`, and `FileFindVisitor`.
+The SnowWhite factory-method, abstract-factory, and prototype paths are also
+expected to fail until they inherit the right factory base class and return
+SnowWhite products instead of `null`.
 
 ## Local Commands
 

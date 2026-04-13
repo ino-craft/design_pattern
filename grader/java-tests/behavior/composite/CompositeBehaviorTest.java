@@ -21,9 +21,11 @@ public class CompositeBehaviorTest {
         assertEquals(30000, root.getSize(), "root size should aggregate children");
         assertEquals("root", root.getName(), "directory name");
         assertEquals("vi", vi.getName(), "file name");
+        assertEquals("/root/bin", bin.getFullName(), "directory full path");
+        assertEquals("/root/bin/vi", vi.getFullName(), "file full path");
         assertLeafRejectsChildren(vi);
 
-        System.out.println("PASS composite tree behavior");
+        System.out.println("PASS composite full path behavior");
     }
 
     private static void assertLeafRejectsChildren(Entry file) {

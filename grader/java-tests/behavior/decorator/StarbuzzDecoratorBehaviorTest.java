@@ -2,7 +2,9 @@ package grader.behavior.decorator;
 
 import headfirst.decorator.starbuzz.Beverage;
 import headfirst.decorator.starbuzz.DarkRoast;
+import headfirst.decorator.starbuzz.HouseBlend;
 import headfirst.decorator.starbuzz.Mocha;
+import headfirst.decorator.starbuzz.Soy;
 import headfirst.decorator.starbuzz.Whip;
 
 public class StarbuzzDecoratorBehaviorTest {
@@ -16,7 +18,25 @@ public class StarbuzzDecoratorBehaviorTest {
         assertContains(beverage.getDescription(), "Mocha, Mocha, Whip");
         assertNear(1.49, beverage.cost());
 
-        System.out.println("PASS starbuzz decorator stack");
+        Beverage forward = new HouseBlend();
+        forward = new Soy(forward);
+        forward = new Mocha(forward);
+        forward = new Mocha(forward);
+        forward = new Whip(forward);
+        forward = new Whip(forward);
+        assertContains(forward.getDescription(), "House Blend Coffee, Soy, Mocha, Mocha, Whip, Whip");
+        assertNear(1.64, forward.cost());
+
+        Beverage reverse = new HouseBlend();
+        reverse = new Whip(reverse);
+        reverse = new Whip(reverse);
+        reverse = new Mocha(reverse);
+        reverse = new Mocha(reverse);
+        reverse = new Soy(reverse);
+        assertContains(reverse.getDescription(), "House Blend Coffee, Whip, Whip, Mocha, Mocha, Soy");
+        assertNear(1.64, reverse.cost());
+
+        System.out.println("PASS starbuzz decorator practice stack");
     }
 
     private static void assertContains(String actual, String expected) {

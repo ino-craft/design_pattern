@@ -1,20 +1,53 @@
-package grader.behavior.strategy;
+package headfirst.strategy;
 
-import headfirst.strategy.Duck;
-import headfirst.strategy.FlyRocketPowered;
-import headfirst.strategy.ModelDuck;
-import headfirst.strategy.MuteQuack;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 public class StrategyBehaviorTest {
     public static void main(String[] args) {
-        Duck duck = new ModelDuck();
+        ModelDuck model = new ModelDuck();
 
-        duck.performFly();
-        duck.setFlyBehavior(new FlyRocketPowered());
-        duck.performFly();
-        duck.setQuackBehavior(new MuteQuack());
-        duck.performQuack();
+        model.setQuackBehavior(new DoubleQuack());
+        assertContains(capture(model::performQuack), "Quack, Quack");
 
-        System.out.println("PASS strategy runtime swap");
+        Duck mallard = new MallardDuck();
+        mallard.setFlyBehavior(new FlyRocketPowered());
+        mallard.setQuackBehavior(new DoubleQuack());
+        mallard.setEggBehavior(new SpawnEgg());
+        assertContains(capture(mallard::performEgg), "Spawned");
+
+        model.setFlyBehavior(new FlyNoWay());
+        model.setQuackBehavior(new MuteQuack());
+        model.setEggBehavior(new SpawnNothing());
+        model.CopyBehavior(mallard);
+
+        String copiedOutput = capture(() -> {
+            model.performFly();
+            model.performQuack();
+            model.performEgg();
+        });
+        assertContains(copiedOutput, "I'm flying with a rocket");
+        assertContains(copiedOutput, "Quack, Quack");
+        assertContains(copiedOutput, "Spawned");
+
+        System.out.println("PASS strategy behavior extensions");
+    }
+
+    private static String capture(Runnable action) {
+        PrintStream original = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
+        try {
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
+        return output.toString();
+    }
+
+    private static void assertContains(String actual, String expected) {
+        if (!actual.contains(expected)) {
+            throw new AssertionError("Expected output to contain " + expected + ", got:\n" + actual);
+        }
     }
 }

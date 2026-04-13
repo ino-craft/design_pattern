@@ -1,6 +1,7 @@
 package grader.behavior.decorator;
 
 import headfirst.decorator.io.skeleton.LowerCaseInputStream;
+import headfirst.decorator.io.skeleton.ShiftInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +29,30 @@ public class LowerCaseDecoratorBehaviorTest {
             throw new AssertionError("Expected single-byte read to lower-case A");
         }
 
-        System.out.println("PASS lowercase decorator stream");
+        assertReadAll("Tpguxbsf", new ShiftInputStream(bytes("Software"), 1));
+        assertReadAll("Z12YWz#", new ShiftInputStream(bytes("A12ZXa#"), -1));
+        assertReadAll("Pattern", new ShiftInputStream(bytes("Pattern")));
+        assertReadAll(
+            "qbuufso",
+            new ShiftInputStream(new LowerCaseInputStream(bytes("PATTERN")), 1)
+        );
+
+        System.out.println("PASS decorator stream filters");
+    }
+
+    private static ByteArrayInputStream bytes(String text) {
+        return new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void assertReadAll(String expected, ShiftInputStream stream) throws IOException {
+        byte[] buffer = new byte[64];
+        int count = stream.read(buffer, 0, buffer.length);
+        String actual = new String(buffer, 0, count, StandardCharsets.UTF_8);
+        if (!expected.equals(actual)) {
+            throw new AssertionError("Expected shifted text " + expected + ", got " + actual);
+        }
+        if (stream.read() != -1) {
+            throw new AssertionError("Expected EOF to remain -1");
+        }
     }
 }

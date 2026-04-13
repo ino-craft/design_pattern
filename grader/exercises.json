@@ -7,23 +7,36 @@
       "points": 10,
       "structureChecks": [
         {
-          "name": "A common work role is abstract",
-          "glob": "**/*.java",
-          "regex": "abstract\\s+class\\s+\\w+[^\\{]*\\{.*abstract\\s+void\\s+doWork\\s*\\(",
-          "hint": "Delegation starts with a stable role that clients can call without knowing each concrete worker."
+          "name": "EmployeeType is an extensible role",
+          "path": "delegationProblem/EmployeeType.java",
+          "regex": "(interface\\s+EmployeeType|abstract\\s+class\\s+EmployeeType)",
+          "hint": "The salary policy should be behind an EmployeeType role so new employee types can be added without rewriting Worker."
         },
         {
-          "name": "A speaking role is an interface",
-          "glob": "**/*.java",
-          "regex": "interface\\s+\\w+[^\\{]*\\{.*void\\s+say\\s*\\(",
-          "hint": "Separate speaking behavior from the worker inheritance path."
+          "name": "Regular and Manager implement the employee role",
+          "paths": [
+            "delegationProblem/Regular.java",
+            "delegationProblem/Manager.java"
+          ],
+          "regex": [
+            "class\\s+Regular\\s+(implements|extends)\\s+EmployeeType",
+            "class\\s+Manager\\s+(implements|extends)\\s+EmployeeType"
+          ],
+          "hint": "Regular and Manager should be concrete salary policies."
         },
         {
-          "name": "Multiple concrete actors implement speaking behavior",
-          "glob": "**/*.java",
-          "regex": "void\\s+say\\s*\\(",
-          "minMatches": 3,
-          "hint": "Concrete actors should be usable through the same speaking contract without client-side type checks."
+          "name": "Worker delegates salary increases to EmployeeType",
+          "path": "delegationProblem/Worker.java",
+          "regex": [
+            "EmployeeType\\s+\\w+",
+            "void\\s+setEmployeeType\\s*\\(\\s*EmployeeType\\s+\\w+\\s*\\)",
+            "void\\s+increaseSalary\\s*\\(\\s*double\\s+rate\\s*\\)"
+          ],
+          "notRegex": [
+            "instanceof\\s+(Regular|Manager)",
+            "new\\s+(Regular|Manager)\\s*\\("
+          ],
+          "hint": "Worker should hold and delegate to an EmployeeType instead of branching on concrete employee classes."
         }
       ],
       "runs": [
@@ -31,9 +44,8 @@
           "class": "delegationProblem.Main",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "Working like a dog",
-            "Meow",
-            "Beep"
+            "previous salary",
+            "increased salary"
           ]
         }
       ],
@@ -41,13 +53,10 @@
         {
           "name": "delegation-worker-and-sayable",
           "source": "grader/java-tests/behavior/delegation/DelegationBehaviorTest.java",
-          "class": "grader.behavior.delegation.DelegationBehaviorTest",
+          "class": "delegationProblem.DelegationBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "Working like a dog",
-            "Working like a cat",
-            "Beep",
-            "PASS delegation behavior"
+            "PASS delegation salary delegation"
           ]
         }
       ]
@@ -74,6 +83,41 @@
             "set\\w+Behavior\\s*\\(\\s*\\w+Behavior"
           ],
           "hint": "The context should delegate variable behavior to replaceable behavior objects."
+        },
+        {
+          "name": "DoubleQuack is a new quack strategy",
+          "path": "headfirst/strategy/DoubleQuack.java",
+          "regex": [
+            "class\\s+DoubleQuack\\s+implements\\s+QuackBehavior",
+            "Quack, Quack"
+          ],
+          "hint": "Practice 2-2 asks for a new QuackBehavior implementation that prints Quack, Quack."
+        },
+        {
+          "name": "Egg behavior is a third strategy family",
+          "glob": "**/*.java",
+          "regex": [
+            "interface\\s+EggBehavior[^\\{]*\\{[^}]*void\\s+spawn\\s*\\(",
+            "class\\s+SpawnEgg\\s+implements\\s+EggBehavior",
+            "class\\s+SpawnNothing\\s+implements\\s+EggBehavior"
+          ],
+          "hint": "Practice 2-3 adds EggBehavior plus SpawnEgg and SpawnNothing concrete strategies."
+        },
+        {
+          "name": "Duck supports egg behavior at runtime",
+          "path": "headfirst/strategy/Duck.java",
+          "regex": [
+            "EggBehavior\\s+\\w+",
+            "setEggBehavior\\s*\\(\\s*EggBehavior\\s+\\w+\\s*\\)",
+            "performEgg\\s*\\("
+          ],
+          "hint": "Duck should own, perform, and replace the EggBehavior strategy like fly and quack behavior."
+        },
+        {
+          "name": "ModelDuck can copy another duck's behavior",
+          "path": "headfirst/strategy/ModelDuck.java",
+          "regex": "CopyBehavior\\s*\\(\\s*Duck\\s+\\w+\\s*\\)",
+          "hint": "Practice 2-4 asks ModelDuck.CopyBehavior(Duck source) to copy fly, quack, and egg behavior."
         }
       ],
       "runs": [
@@ -91,13 +135,10 @@
         {
           "name": "strategy-runtime-swap",
           "source": "grader/java-tests/behavior/strategy/StrategyBehaviorTest.java",
-          "class": "grader.behavior.strategy.StrategyBehaviorTest",
+          "class": "headfirst.strategy.StrategyBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "I can't fly",
-            "I'm flying with a rocket",
-            "<< Silence >>",
-            "PASS strategy runtime swap"
+            "PASS strategy behavior extensions"
           ]
         }
       ]
@@ -108,17 +149,30 @@
       "points": 10,
       "structureChecks": [
         {
-          "name": "Subject exposes a notification step",
-          "glob": "**/*.java",
-          "regex": "void\\s+notify(DataSetChanged|Observers)\\s*\\(",
-          "hint": "A subject should have one method that broadcasts state changes to dependents."
+          "name": "WeatherDataSubject uses java.util.Observable",
+          "path": "observerPractice/WeatherDataSubject.java",
+          "regex": [
+            "extends\\s+(java\\.util\\.)?Observable",
+            "setChanged\\s*\\("
+          ],
+          "hint": "Practice 3 specifically asks for the java.util.Observable / Observer API."
         },
         {
-          "name": "Stores react through weatherChanged",
+          "name": "Weather stores are java.util observers",
           "glob": "**/*.java",
-          "regex": "void\\s+\\w*Changed\\s*\\(",
-          "minMatches": 2,
-          "hint": "Observers should react through a common update-style callback."
+          "regex": "implements\\s+(java\\.util\\.)?Observer",
+          "minMatches": 3,
+          "hint": "UmbrellaStore, ClothingStore, and IceCreamStore should subscribe through the same Observer contract."
+        },
+        {
+          "name": "IceCreamStore handles the warm-weather extension",
+          "path": "observerPractice/IceCreamStore.java",
+          "regex": [
+            "class\\s+IceCreamStore\\s+implements\\s+(java\\.util\\.)?Observer",
+            "void\\s+update\\s*\\(\\s*(java\\.util\\.)?Observable\\s+\\w+\\s*,\\s*Object\\s+\\w+\\s*\\)",
+            "20(\\.0)?[fF]?"
+          ],
+          "hint": "Practice 3 adds IceCreamStore, which sells ice cream when temperature is at least 20 degrees."
         }
       ],
       "runs": [
@@ -136,14 +190,10 @@
         {
           "name": "observer-weather-notification",
           "source": "grader/java-tests/behavior/observer/ObserverBehaviorTest.java",
-          "class": "grader.behavior.observer.ObserverBehaviorTest",
+          "class": "observerPractice.ObserverBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "Umbrella Sale !",
-            "Selling Winter cloths !",
-            "Umbrella Not Sale !",
-            "Selling Summer cloths !",
-            "PASS observer notifications"
+            "PASS observer java util notifications"
           ]
         }
       ]
@@ -170,6 +220,26 @@
           "regex": "class\\s+\\w+\\s+implements\\s+\\w+",
           "minMatches": 2,
           "hint": "Each concrete state owns its own transition and action behavior."
+        },
+        {
+          "name": "UrgentState adds the alarm state",
+          "path": "hiroshi/state/problem/UrgentState.java",
+          "regex": [
+            "class\\s+UrgentState\\s+implements\\s+State",
+            "doUse\\s*\\(",
+            "doAlarm\\s*\\(",
+            "doPhone\\s*\\(",
+            "Use\\(UrgentState\\)!!!!",
+            "Alarm\\(UrgentState\\)",
+            "Phone\\(UrgentState\\)"
+          ],
+          "hint": "Practice 4 adds UrgentState with security-center messages that ignore the current time."
+        },
+        {
+          "name": "Alarm transitions into UrgentState",
+          "glob": "**/*.java",
+          "regex": "UrgentState\\.getInstance\\s*\\(",
+          "hint": "Pressing Alarm should move the context into UrgentState before urgent actions are handled."
         }
       ],
       "runs": [],
@@ -177,10 +247,10 @@
         {
           "name": "state-clock-transitions",
           "source": "grader/java-tests/behavior/state/StateBehaviorTest.java",
-          "class": "grader.behavior.state.StateBehaviorTest",
+          "class": "hiroshi.state.problem.StateBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS state transitions"
+            "PASS state urgent transitions"
           ]
         }
       ]
@@ -191,26 +261,46 @@
       "points": 10,
       "structureChecks": [
         {
-          "name": "Iterator contract is explicit",
-          "glob": "**/*.java",
+          "name": "Menus use Java Iterator",
+          "path": "headfirst/iterator/dinermerger/Menu.java",
           "regex": [
-            "boolean\\s+hasNext\\s*\\(",
-            "Object\\s+next\\s*\\("
+            "(java\\.util\\.Iterator|import\\s+java\\.util\\.Iterator|import\\s+java\\.util\\.\\*)",
+            "Iterator\\s+createIterator\\s*\\("
           ],
-          "hint": "Iterator hides each menu collection's storage details behind traversal operations."
+          "hint": "Practice 5-1 moves the menu contract to the Java standard Iterator."
         },
         {
-          "name": "Menus create iterators",
-          "glob": "**/*.java",
-          "regex": "\\w+\\s+createIterator\\s*\\(",
-          "minMatches": 2,
-          "hint": "Clients should ask menus for iterators instead of reaching into arrays or lists."
+          "name": "DinerMenu uses the alternating iterator",
+          "path": "headfirst/iterator/dinermerger/DinerMenu.java",
+          "regex": "new\\s+AlternatingDinerMenuIterator\\s*\\(",
+          "hint": "Practice 5-1 asks DinerMenu.createIterator() to return AlternatingDinerMenuIterator."
         },
         {
-          "name": "Client code depends on Iterator",
-          "glob": "**/*.java",
-          "regex": "printMenu\\s*\\(\\s*\\w+\\s+",
-          "hint": "The client should print menus through the iterator abstraction."
+          "name": "PancakeHouseMenu delegates to ArrayList iterator",
+          "path": "headfirst/iterator/dinermerger/PancakeHouseMenu.java",
+          "regex": "menuItems\\.iterator\\s*\\(",
+          "hint": "Practice 5-1 asks PancakeHouseMenu to use the ArrayList-provided iterator."
+        },
+        {
+          "name": "CafeMenu is Hashtable-backed",
+          "path": "headfirst/iterator/dinermerger/CafeMenu.java",
+          "regex": [
+            "class\\s+CafeMenu\\s+implements\\s+Menu",
+            "Hashtable\\s*(<[^>]+>)?\\s+menuItems",
+            "addItem\\s*\\(",
+            "menuItems\\.values\\s*\\(\\s*\\)\\.iterator\\s*\\("
+          ],
+          "hint": "Practice 5-2 adds CafeMenu using Hashtable values as the iterator source."
+        },
+        {
+          "name": "Waitress prints the cafe menu too",
+          "path": "headfirst/iterator/dinermerger/Waitress.java",
+          "regex": [
+            "CafeMenu\\s+\\w+",
+            "Waitress\\s*\\(\\s*PancakeHouseMenu\\s+\\w+\\s*,\\s*DinerMenu\\s+\\w+\\s*,\\s*CafeMenu\\s+\\w+\\s*\\)",
+            "\\w+\\.createIterator\\s*\\("
+          ],
+          "hint": "The client should handle breakfast, lunch, and cafe menus through the same Iterator abstraction."
         }
       ],
       "runs": [
@@ -228,10 +318,10 @@
         {
           "name": "iterator-menu-traversal",
           "source": "grader/java-tests/behavior/iterator/IteratorBehaviorTest.java",
-          "class": "grader.behavior.iterator.IteratorBehaviorTest",
+          "class": "headfirst.iterator.dinermerger.IteratorBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS iterator traversal"
+            "PASS iterator cafe traversal"
           ]
         }
       ]
@@ -271,6 +361,19 @@
           "glob": "**/*.java",
           "regex": "class\\s+\\w+\\s+extends\\s+\\w+\\s+implements\\s+[^\\{]*Mediator",
           "hint": "The frame owns the coordination rules instead of scattering them across widgets."
+        },
+        {
+          "name": "Login requires username and password length at least four",
+          "path": "hiroshi/mediatorProblem/LoginFrame.java",
+          "regex": [
+            "(textUser\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\)\\s*>=\\s*4|4\\s*<=\\s*textUser\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\))",
+            "(textPass\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\)\\s*>=\\s*4|4\\s*<=\\s*textPass\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\))"
+          ],
+          "notRegex": [
+            "textUser\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\)\\s*>\\s*0",
+            "textPass\\.getText\\s*\\(\\s*\\)\\.length\\s*\\(\\s*\\)\\s*>\\s*0"
+          ],
+          "hint": "Practice 6 changes the login rule from one or more characters to username and password each being at least four characters."
         }
       ],
       "runs": []
@@ -336,6 +439,36 @@
           ],
           "notContains": "return null",
           "hint": "The variant factory skeleton should inherit MazeFactory and return concrete products instead of null."
+        },
+        {
+          "name": "Abstract factory main enables the Snow argument",
+          "path": "maze/MazeGameAbstractFactory.java",
+          "regex": [
+            "\"Snow\"\\.equals\\s*\\(\\s*args\\[0\\]\\s*\\)",
+            "new\\s+(maze\\.snow\\.)?SnowWhiteMazeFactory\\s*\\("
+          ],
+          "hint": "Practice 7-1 asks the client main path to accept the Snow argument."
+        },
+        {
+          "name": "Factory method main enables the Snow argument",
+          "path": "maze/MazeGameCreator.java",
+          "regex": [
+            "\"Snow\"\\.equals\\s*\\(\\s*args\\[0\\]\\s*\\)",
+            "new\\s+(maze\\.snow\\.)?SnowWhiteMazeGameCreator\\s*\\("
+          ],
+          "hint": "Practice 7-2 asks the client main path to accept the Snow argument."
+        },
+        {
+          "name": "Prototype main selects default, Harry, and Snow prototypes",
+          "path": "maze/MazePrototypeFactory.java",
+          "regex": [
+            "\"Harry\"\\.equals\\s*\\(\\s*args\\[0\\]\\s*\\)",
+            "new\\s+(maze\\.harry\\.)?HarryPotterMazeFactory\\s*\\(",
+            "\"Snow\"\\.equals\\s*\\(\\s*args\\[0\\]\\s*\\)",
+            "new\\s+(maze\\.snow\\.)?SnowWhiteMazeFactory\\s*\\(",
+            "new\\s+MazePrototypeFactory\\s*\\("
+          ],
+          "hint": "Practice 7-3 extends the prototype factory main path for Harry and Snow themes."
         }
       ],
       "runs": [],
@@ -343,10 +476,10 @@
         {
           "name": "factory-product-family",
           "source": "grader/java-tests/behavior/factory/FactoryBehaviorTest.java",
-          "class": "maze.harry.FactoryBehaviorTest",
+          "class": "grader.behavior.factory.FactoryBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS factory product families"
+            "PASS factory snow families and prototype"
           ]
         }
       ]
@@ -395,7 +528,7 @@
           "class": "grader.behavior.decorator.StarbuzzDecoratorBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS starbuzz decorator stack"
+            "PASS starbuzz decorator practice stack"
           ]
         }
       ]
@@ -419,6 +552,28 @@
             "int\\s+read\\s*\\(\\s*byte\\[\\]\\s+\\w+\\s*,\\s*int\\s+\\w+\\s*,\\s*int\\s+\\w+\\s*\\)\\s+throws\\s+IOException"
           ],
           "hint": "The decorator should preserve the InputStream contract for both single-byte and bulk reads."
+        },
+        {
+          "name": "ShiftInputStream decorates FilterInputStream",
+          "path": "headfirst/decorator/io/skeleton/ShiftInputStream.java",
+          "regex": [
+            "class\\s+ShiftInputStream\\s+extends\\s+FilterInputStream",
+            "ShiftInputStream\\s*\\(\\s*InputStream\\s+\\w+\\s*,\\s*int\\s+\\w+\\s*\\)",
+            "ShiftInputStream\\s*\\(\\s*InputStream\\s+\\w+\\s*\\)"
+          ],
+          "hint": "Practice 8-2 adds ShiftInputStream(InputStream, int) and ShiftInputStream(InputStream)."
+        },
+        {
+          "name": "ShiftInputStream implements alphabet wrapping",
+          "path": "headfirst/decorator/io/skeleton/ShiftInputStream.java",
+          "regex": [
+            "private\\s+int\\s+shift\\s*\\(\\s*int\\s+\\w+\\s*\\)",
+            "65|\\b'A'\\b",
+            "90|\\b'Z'\\b",
+            "97|\\b'a'\\b",
+            "122|\\b'z'\\b"
+          ],
+          "hint": "The shift filter should wrap A-Z and a-z while leaving numbers and symbols unchanged."
         }
       ],
       "runs": [],
@@ -429,7 +584,7 @@
           "class": "grader.behavior.decorator.LowerCaseDecoratorBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS lowercase decorator stream"
+            "PASS decorator stream filters"
           ]
         }
       ]
@@ -466,6 +621,16 @@
             "entry\\.getSize\\s*\\("
           ],
           "hint": "A composite node should own child entries and aggregate their behavior recursively."
+        },
+        {
+          "name": "Entries expose full paths",
+          "glob": "**/*.java",
+          "regex": [
+            "String\\s+getFullName\\s*\\(",
+            "Entry\\s+parent",
+            "parent\\s*=\\s*this"
+          ],
+          "hint": "Practice 9 asks getFullName() to walk parent links from the current entry to the root."
         }
       ],
       "runs": [
@@ -485,7 +650,7 @@
           "class": "grader.behavior.composite.CompositeBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS composite tree behavior"
+            "PASS composite full path behavior"
           ]
         }
       ]
@@ -508,6 +673,25 @@
           "regex": "accept\\s*\\(\\s*\\w+Visitor\\s+visitor\\s*\\)",
           "minMatches": 5,
           "hint": "Each element should call back into the visitor using accept."
+        },
+        {
+          "name": "Destroy visitor is added",
+          "glob": "**/*.java",
+          "regex": [
+            "class\\s+CarElementDestroyVisitor\\s+implements\\s+ICarElementVisitor",
+            "Destroying"
+          ],
+          "hint": "Practice 11-1 adds CarElementDestroyVisitor that prints Destroying xxx messages."
+        },
+        {
+          "name": "Trunk element is added to the car structure",
+          "glob": "**/*.java",
+          "regex": [
+            "class\\s+Trunk\\s+extends\\s+CarElement",
+            "visit\\s*\\(\\s*Trunk\\s+\\w+\\s*\\)",
+            "new\\s+Trunk\\s*\\("
+          ],
+          "hint": "Practice 11-2 adds a Trunk element and the corresponding visitor overload."
         }
       ],
       "runs": [
@@ -527,7 +711,7 @@
           "class": "Visitor.interfaceVisitor.InterfaceVisitorBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS interface visitor traversal"
+            "PASS interface visitor extensions"
           ]
         }
       ]
@@ -565,6 +749,17 @@
             "entry\\.accept\\s*\\(\\s*this\\s*\\)"
           ],
           "hint": "A visitor can carry traversal state while walking a composite structure."
+        },
+        {
+          "name": "FileFindVisitor finds matching extensions",
+          "path": "hiroshi/VisitorProblem/FileFindVisitor.java",
+          "regex": [
+            "class\\s+FileFindVisitor\\s+extends\\s+Visitor",
+            "FileFindVisitor\\s*\\(\\s*String\\s+\\w+\\s*\\)",
+            "getFoundFiles\\s*\\(",
+            "endsWith\\s*\\("
+          ],
+          "hint": "Practice 11-3 adds a visitor that collects files matching the requested extension."
         }
       ],
       "runs": [
@@ -582,10 +777,10 @@
         {
           "name": "directory-visitor-counting",
           "source": "grader/java-tests/behavior/visitor/DirectoryVisitorBehaviorTest.java",
-          "class": "grader.behavior.visitor.DirectoryVisitorBehaviorTest",
+          "class": "hiroshi.VisitorProblem.DirectoryVisitorBehaviorTest",
           "timeoutSeconds": 5,
           "expectedOutputContains": [
-            "PASS directory visitor traversal"
+            "PASS directory visitor file find"
           ]
         }
       ]
