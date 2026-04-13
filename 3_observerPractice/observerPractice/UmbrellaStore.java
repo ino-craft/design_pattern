@@ -1,6 +1,9 @@
 package observerPractice;
 
-public class UmbrellaStore {
+import java.util.Observable;
+import java.util.Observer;
+
+public class UmbrellaStore implements Observer {
 	
 	private boolean sellingState;
 	// default constructor
@@ -19,5 +22,13 @@ public class UmbrellaStore {
 
 	public void isSelling() {
 		System.out.println("Umbrella "+ ((sellingState) ? "":"Not ") + "Sale !");
+	}
+
+	public void update(Observable observable, Object argument) {
+		if (argument instanceof WeatherDataSubject.WeatherData) {
+			weatherChanged(((WeatherDataSubject.WeatherData) argument).rainfall);
+		} else if (observable instanceof WeatherDataSubject) {
+			weatherChanged(((WeatherDataSubject) observable).getRainfall());
+		}
 	}
 }

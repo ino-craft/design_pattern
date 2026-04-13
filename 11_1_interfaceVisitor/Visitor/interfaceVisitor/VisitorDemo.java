@@ -4,11 +4,15 @@ interface ICarElementVisitor {
     void visit(Wheel wheel);
     void visit(Engine engine);
     void visit(Body body);
+    void visit(Trunk trunk);
     void visit(Car car); 
 }
 
 interface ICarElement {
     abstract public void accept(ICarElementVisitor visitor);   
+}
+
+abstract class CarElement implements ICarElement {
 }
 
 public class VisitorDemo {
@@ -37,11 +41,16 @@ class Body implements ICarElement {
         visitor.visit(this);     
     }
 }
+class Trunk extends CarElement {
+    public void accept(ICarElementVisitor visitor) {
+        visitor.visit(this);
+    }
+}
 
 class Car implements ICarElement {
     ICarElement[] elements;
     public Car() {
-        this.elements = new ICarElement[] { new Wheel("front left"), new Wheel("front right"), new Wheel("back left") , new Wheel("back right"), new Body(), new Engine() }; 
+        this.elements = new ICarElement[] { new Wheel("front left"), new Wheel("front right"), new Wheel("back left") , new Wheel("back right"), new Body(), new Engine(), new Trunk() };
     }
     public void accept(ICarElementVisitor visitor) {    
         for(ICarElement elem : elements) 
@@ -60,6 +69,9 @@ class CarElementPrintVisitor implements ICarElementVisitor {
     public void visit(Body body) {
         System.out.println("Visiting body");     
     }
+    public void visit(Trunk trunk) {
+        System.out.println("Visiting trunk");
+    }
     public void visit(Car car) {      
         System.out.println("Visiting car");     
     }
@@ -74,8 +86,29 @@ class CarElementDoVisitor implements ICarElementVisitor {
     public void visit(Body body) {
         System.out.println("Moving my body");
     }
+    public void visit(Trunk trunk) {
+        System.out.println("Opening my trunk");
+    }
     public void visit(Car car) {
         System.out.println("Starting my car");
+    }
+}
+
+class CarElementDestroyVisitor implements ICarElementVisitor {
+    public void visit(Wheel wheel) {
+        System.out.println("Destroying " + wheel.getName() + " wheel");
+    }
+    public void visit(Engine engine) {
+        System.out.println("Destroying engine");
+    }
+    public void visit(Body body) {
+        System.out.println("Destroying body");
+    }
+    public void visit(Trunk trunk) {
+        System.out.println("Destroying trunk");
+    }
+    public void visit(Car car) {
+        System.out.println("Destroying car");
     }
 }
 

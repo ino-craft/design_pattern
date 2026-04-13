@@ -1,10 +1,12 @@
 package headfirst.strategy;
 
 public abstract class Duck {
-	FlyBehavior flyBehavior;
-	QuackBehavior quackBehavior;
+	protected FlyBehavior flyBehavior;
+	protected QuackBehavior quackBehavior;
+	protected EggBehavior eggBehavior;
  
 	public Duck() {
+		eggBehavior = new SpawnNothing();
 	}
  
 	public void setFlyBehavior (FlyBehavior fb) {
@@ -13,6 +15,10 @@ public abstract class Duck {
  
 	public void setQuackBehavior(QuackBehavior qb) {
 		quackBehavior = qb;
+	}
+
+	public void setEggBehavior(EggBehavior eb) {
+		eggBehavior = eb;
 	}
  
 	abstract void display();
@@ -23,6 +29,10 @@ public abstract class Duck {
  
 	public void performQuack() {
 		quackBehavior.quack();
+	}
+
+	public void performEgg() {
+		eggBehavior.spawn();
 	}
  
 	public void swim() {

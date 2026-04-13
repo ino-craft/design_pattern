@@ -40,8 +40,8 @@ public class PancakeHouseMenu implements Menu {
 		return menuItems;
 	}
   
-	public Iterator createIterator() {
-		return new PancakeHouseMenuIterator(menuItems);
+	public java.util.Iterator createIterator() {
+		return menuItems.iterator();
 	}
   
 	public String toString() {

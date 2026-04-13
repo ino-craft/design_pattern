@@ -17,6 +17,12 @@ public class MiniDuckSimulator {
 		model.performFly();	
 		model.setFlyBehavior(new FlyRocketPowered());
 		model.performFly();
+		model.setQuackBehavior(new DoubleQuack());
+		model.performQuack();
+		mallard.setEggBehavior(new SpawnEgg());
+		mallard.performEgg();
+		model.CopyBehavior(mallard);
+		model.performEgg();
 	}
 
 	/* 

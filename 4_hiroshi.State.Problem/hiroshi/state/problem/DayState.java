@@ -15,7 +15,7 @@ public class DayState implements State {
         context.recordLog("Use(Daytime)");
     }
     public void doAlarm(Context context) {              // 비상벨
-        context.callSecurityCenter("Alarm(Day time)");
+        context.changeState(UrgentState.getInstance());
     }
     public void doPhone(Context context) {              // 일반통화
         context.callSecurityCenter("Phone(Day time)");

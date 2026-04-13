@@ -66,14 +66,14 @@ public class MazePrototypeFactory extends MazeFactory {
     MazePrototypeFactory factory = null;
     MazeFactory prototypeFactory = null;
     
-    // if (args.length > 0) { 
-    //   if ("Harry".equals(args[0])) { 
-    //     prototypeFactory = new maze.harry.HarryPotterMazeFactory(); 
-    //   } 
-    //   else if ("Snow".equals(args[0])) { 
-    //       prototypeFactory = new maze.snow.SnowWhiteMazeFactory();      
-    //   } 
-    // } 
+    if (args.length > 0) {
+      if ("Harry".equals(args[0])) {
+        prototypeFactory = new maze.harry.HarryPotterMazeFactory();
+      }
+      else if ("Snow".equals(args[0])) {
+        prototypeFactory = new maze.snow.SnowWhiteMazeFactory();
+      }
+    }
 
     if (prototypeFactory == null) { 
       prototypeFactory = new MazeFactory(); 

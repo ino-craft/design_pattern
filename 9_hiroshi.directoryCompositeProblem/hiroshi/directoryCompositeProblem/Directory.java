@@ -22,6 +22,7 @@ public class Directory extends Entry {
     }
     public Entry add(Entry entry) {                  // 엔트리의 추가
         directory.add(entry);
+        entry.parent = this;
         return this;
     }
     protected void printList(String prefix) {           // 엔트리의 일람

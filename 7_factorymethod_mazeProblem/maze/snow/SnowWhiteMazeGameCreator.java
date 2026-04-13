@@ -1,40 +1,20 @@
+package maze.snow;
 
-package maze.snow; 
+import maze.Door;
+import maze.MazeGameCreator;
+import maze.Room;
+import maze.Wall;
 
-import maze.*;
+public class SnowWhiteMazeGameCreator extends MazeGameCreator {
+    public Wall makeWall() {
+        return new SnowWhiteWall();
+    }
 
-//don't forget to inherit
-public class SnowWhiteMazeGameCreator  { 
+    public Room makeRoom(int roomNumber) {
+        return new SnowWhiteRoom(roomNumber);
+    }
 
-	public Wall makeWall() { 
-		  return null;
-		  	  
-	  }
-
-	  public Room makeRoom(int roomNumber) { 
-		  return null;
-		  	  
-	  }
-
-	  public Door makeDoor(Room room1, Room room2) { 
-		  return null;
-	  }
+    public Door makeDoor(Room room1, Room room2) {
+        return new SnowWhiteDoor(room1, room2);
+    }
 }
-
-/* Solution
-public class SnowWhiteMazeGameCreator extends MazeGameCreator  { 
-
-	public Wall makeWall() { 
-		  return new SnowWhiteWall();
-		  	  
-	  }
-
-	  public Room makeRoom(int roomNumber) { 
-		  return new SnowWhiteRoom(roomNumber);
-		  	  
-	  }
-
-	  public Door makeDoor(Room room1, Room room2) { 
-		  return new SnowWhiteDoor(room1, room2);
-	  }
-} */

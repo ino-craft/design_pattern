@@ -9,4 +9,10 @@ public class ModelDuck extends Duck {
 	public void display() {
 		System.out.println("I'm a model duck");
 	}
+
+	public void CopyBehavior(Duck source) {
+		flyBehavior = source.flyBehavior;
+		quackBehavior = source.quackBehavior;
+		eggBehavior = source.eggBehavior;
+	}
 }

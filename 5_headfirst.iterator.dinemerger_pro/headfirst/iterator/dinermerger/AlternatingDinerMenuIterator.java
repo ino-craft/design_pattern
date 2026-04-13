@@ -2,14 +2,14 @@ package headfirst.iterator.dinermerger;
 
 import java.util.Calendar;
 
-public class AlternatingDinerMenuIterator implements Iterator {
+public class AlternatingDinerMenuIterator implements java.util.Iterator {
 	MenuItem[] list;
 	int position;
 
 	public AlternatingDinerMenuIterator(MenuItem[] list) {
 		this.list = list;
 		Calendar rightNow = Calendar.getInstance();
-		position = rightNow.DAY_OF_WEEK % 2;
+		position = 0;
 	}
 	public Object next() {
 		MenuItem menuItem = list[position];
@@ -25,5 +25,9 @@ public class AlternatingDinerMenuIterator implements Iterator {
 	}
 	public String toString() {
 		return "Alternating Diner Menu Iterator";
+	}
+
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 }
